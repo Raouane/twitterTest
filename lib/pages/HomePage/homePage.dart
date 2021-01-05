@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:twitter/API/Models/postModel.dart';
 
 import 'package:twitter/API/fetchData.dart';
+import 'package:twitter/constants.dart';
 import 'package:twitter/pages/Create%20tweet/createtweet.dart';
 
 class HomePage extends StatefulWidget {
@@ -11,7 +12,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  FetchData _fetchData = FetchData();
   List<Postmodel> post = [];
   @override
   void initState() {
@@ -52,16 +52,17 @@ class _HomePageState extends State<HomePage> {
         ],
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: SingleChildScrollView(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
-              FutureBuilder(
-                  future: _fetchData.fetchPosts(),
+              FutureBuilder<List<Postmodel>>(
+                  future: fetchPosts(),
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
-                      List<Postmodel> posts = snapshot.data;
+                      print(snapshot.data);
+
                       switch (snapshot.connectionState) {
                         case ConnectionState.waiting:
                           return Center(
@@ -79,14 +80,16 @@ class _HomePageState extends State<HomePage> {
                           );
                           break;
                         case ConnectionState.done:
+                          List<Postmodel> posts =
+                              snapshot.data.reversed.toList();
+
                           return Center(
                             child: Container(
                               height: MediaQuery.of(context).size.height,
                               child: ListView.builder(
-                                  itemCount: posts.length,
-                                  itemBuilder: (context, index) => Tweetcard(
-                                      descriptions: posts[index].descriptions,
-                                      image: posts[index].image)),
+                                itemCount: posts.length,
+                                itemBuilder: (context, index) => tweetCard(),
+                              ),
                             ),
                           );
                           break;
@@ -102,65 +105,59 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-}
 
-class Tweetcard extends StatelessWidget {
-  final String image, descriptions, profileimage;
-  const Tweetcard({
-    Key key,
-    @required this.descriptions,
-    @required this.image,
-    this.profileimage,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
+  Widget tweetCard(Postmodel descriptions, Postmodel image) {
     return Column(
       children: [
         Row(
           children: [
-            // Text(' mohamedraouane mohamedraouane mohamedraouane mohamed'),
             Column(
               children: [
+                //start profile image
+
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Container(
                     height: 100,
-                    width: 100,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(50),
                       image: DecorationImage(
-                        image: NetworkImage(image),
+                        image: NetworkImage(API_BASE_URL + image),
                         fit: BoxFit.cover,
                       ),
                     ),
                   ),
                 ),
+                // end profile image
+
+                //start profile title
                 Wrap(
                   children: [Text(descriptions)],
                 )
+                // end profile title
               ],
             ),
             SizedBox(
               width: 50,
             ),
-            Container(
-                height: 60,
-                child: Wrap(
-                  children: [Text(descriptions)],
-                )),
           ],
         ),
+        // start tweet image
         Container(
           height: 300,
           decoration: BoxDecoration(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(40),
-                topRight: Radius.circular(40),
-              ),
-              image: DecorationImage(
-                  image: NetworkImage(image), fit: BoxFit.cover)),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(40),
+              topRight: Radius.circular(40),
+            ),
+            image: DecorationImage(
+              image: NetworkImage(API_BASE_URL + image),
+              fit: BoxFit.cover,
+            ),
+          ),
         ),
+        //end tweet image
+        // start comment tweet
         Container(
           height: 50,
           decoration: BoxDecoration(color: Colors.black.withOpacity(.2)),
@@ -182,6 +179,7 @@ class Tweetcard extends StatelessWidget {
             ],
           ),
         ),
+        //end comment tweet
       ],
     );
   }

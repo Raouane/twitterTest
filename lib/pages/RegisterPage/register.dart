@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:twitter/API/sharedPrefs.dart';
 import 'package:twitter/constants.dart';
 import 'package:twitter/pages/HomePage/homePage.dart';
 import 'package:twitter/pages/RegisterPage/CustomTextField.dart';
@@ -78,6 +79,9 @@ class _RegisterState extends State<Register> {
       print('waaaaoouu****************');
       var body = jsonDecode(response.body);
       print(body['jwt']);
+      var token = body['jwt'];
+      var id = body['user']['id'];
+      SharedPrefs.saveToken(token, id.toString());
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(

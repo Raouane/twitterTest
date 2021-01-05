@@ -4,7 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:twitter/constants.dart';
-
+import 'package:http_parser/http_parser.dart';
 import 'package:twitter/main.dart';
 import 'package:twitter/pages/BottomNavBar/bottomNavbar.dart';
 
@@ -14,8 +14,9 @@ class CreateTweet extends StatefulWidget {
 }
 
 class _CreateTweetState extends State<CreateTweet> {
-  TextEditingController controller;
-  String hint;
+  TextEditingController tweetController = TextEditingController();
+  Response response;
+  final String myId = prefs.getString('myId');
 
   File image;
   final piker = ImagePicker();
@@ -31,6 +32,11 @@ class _CreateTweetState extends State<CreateTweet> {
   }
 
   @override
+  void dispose() {
+    tweetController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,10 +51,12 @@ class _CreateTweetState extends State<CreateTweet> {
                   "Authorization": "Bearer " + prefs.get('token'),
                   "Accept": "application/json"
                 };
-                Response response;
+
                 Dio dio = Dio();
                 response = await dio.post(POSTS_URL,
-                    data: await addPostData(image, controller.text));
+                    data: await addPostData(image, tweetController.text),
+                    options: Options(headers: headers));
+                print(response.data);
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -57,8 +65,8 @@ class _CreateTweetState extends State<CreateTweet> {
                 );
               },
               child: Container(
-                height: 25,
-                width: 70,
+                // height: 25,
+                // width: 70,
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(15),
                     color: Colors.blue),
@@ -106,7 +114,7 @@ class _CreateTweetState extends State<CreateTweet> {
                 height: 100,
                 width: 300,
                 child: TextFormField(
-                  controller: controller,
+                  controller: tweetController,
                   maxLines: 5,
                   decoration: InputDecoration(
                       border: InputBorder.none, hintText: 'enter your message'),
@@ -114,7 +122,7 @@ class _CreateTweetState extends State<CreateTweet> {
               ),
             ],
           ),
-          GestureDetector(
+          InkWell(
             onTap: getImage,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -147,12 +155,25 @@ class _CreateTweetState extends State<CreateTweet> {
 
   Future<FormData> addPostData(File image, String tweetDescriptions) async {
     var formdata = FormData();
-    formdata.fields.add(MapEntry("data", '{"title":"$tweetDescriptions"}'));
+    formdata.fields.add(MapEntry("data",
+        '{"descriptions":"$tweetDescriptions","users_permissions_user":"$myId"}'));
     print(formdata);
     if (image != null) {
-      formdata.files.add(MapEntry("file.image",
+      formdata.files.add(MapEntry("files.image",
           await MultipartFile.fromFile(image.path, filename: "tweet.png")));
     }
     return formdata;
   }
+
+  // Future<FormData> addPostData(File image, String tweetDescription) async {
+  //   var formData = FormData();
+  //   formData.fields
+  //       .add(MapEntry("data", '{"description":"$tweetDescription" }'));
+  //   if (_image != null) {
+  //     formData.files.add(MapEntry("files.image",
+  //         await MultipartFile.fromFile(image.path, filename: "tweet.png")));
+  //   }
+
+  //   return formData;
+  // }
 }

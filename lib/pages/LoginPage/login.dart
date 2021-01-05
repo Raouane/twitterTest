@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:twitter/API/sharedPrefs.dart';
 import 'package:twitter/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:twitter/pages/BottomNavBar/bottomNavbar.dart';
 import 'package:twitter/pages/HomePage/homePage.dart';
 import 'package:twitter/pages/RegisterPage/CustomTextField.dart';
 import 'package:twitter/pages/RegisterPage/register.dart';
@@ -88,12 +89,13 @@ class _LoginPageState extends State<LoginPage> {
       var body = jsonDecode(response.body);
       print(body['jwt']);
       var token = body['jwt'];
-      SharedPrefs.saveToken(token);
+      var id = body['user']['id'];
+      SharedPrefs.saveToken(token, id.toString());
 
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => HomePage(),
+          builder: (context) => BottomNavBar(),
         ),
       );
     } else {
